@@ -1,0 +1,45 @@
+package common
+
+// EventType 表示事件类型
+type EventType int
+
+const (
+	EventTypeNone EventType = iota
+	EventTypeRendezvousSend
+	EventTypeRendezvousRecv
+	EventTypeCallEvents
+	EventTypePacketReceived
+	EventTypePacketSent
+	EventTypePacketSentFinished
+	EventTypeWaitForVnetTurn
+	EventTypeNCCLGeneral
+	EventTypeGeneral
+	EventTypeTXDMA
+	EventTypeRXDMA
+	EventTypeWeightGradCommFinished
+	EventTypeInputGradCommFinished
+	EventTypeFwdCommFinished
+	EventTypeWeightGradCommFinishedAfterDelay
+	EventTypeInputGradCommFinishedAfterDelay
+	EventTypeFwdCommFinishedAfterDelay
+	EventTypeWorkloadWait
+	EventTypeReductionReady
+	EventTypeRecFinished
+	EventTypeSendFinished
+	EventTypeProcessingFinished
+	EventTypeDelivered
+	EventTypeNPUToMA
+	EventTypeMAToNPU
+	EventTypeReadPortFree
+	EventTypeWritePortFree
+	EventTypeApplyBoost
+	EventTypeStreamTransferStarted
+	EventTypeStreamReady
+	EventTypeConsiderProcess
+	EventTypeConsiderRetire
+	EventTypeConsiderSendBack
+	EventTypeStreamInit
+	EventTypeStreamsFinishedIncrease
+	EventTypeCommProcessingFinished
+	EventTypeNotInitialized
+)
