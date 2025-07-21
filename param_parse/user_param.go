@@ -4,12 +4,12 @@ import (
 	"flag"
 	"path/filepath"
 	"simai/common"
-	"strconv"
 	"strings"
 )
 
 type UserParam struct {
 	GPUs         []int
+	TotalGPUs    int
 	WorkloadsDir string // 可支持多个workloads文件
 	ResultPrefix string // 结果文件名前缀
 	ResultDir    string // 结果输出目录
@@ -23,12 +23,11 @@ func NewUserParam() *UserParam {
 }
 
 func (p *UserParam) Parse(args []string) error {
-	var gpusStr string
 	var gpuType string
 	var mode string
 
 	flag.StringVar(&p.WorkloadsDir, "workloads", "", "Workloads directory path")
-	flag.StringVar(&gpusStr, "gpus", "", "Comma-separated GPU counts")
+	flag.IntVar(&p.TotalGPUs, "total_gpus", 0, "Total GPUs")
 	flag.StringVar(&p.ResultPrefix, "result_prefix", "results", "Result name")
 	flag.StringVar(&p.ResultDir, "result_dir", "None", "Result folder")
 	flag.UintVar(&p.NetWorkParam.GpusPerServer, "gpus_per_server", 8, "GPUs per server")
@@ -47,12 +46,6 @@ func (p *UserParam) Parse(args []string) error {
 	flag.StringVar(&mode, "mode", "ANALYTICAL", "mode type")
 
 	flag.Parse()
-
-	for _, g := range strings.Split(gpusStr, ",") {
-		if val, err := strconv.Atoi(g); err == nil {
-			p.GPUs = append(p.GPUs, val)
-		}
-	}
 
 	switch strings.ToUpper(gpuType) {
 	case "A100":
@@ -82,14 +75,12 @@ func (p *UserParam) Parse(args []string) error {
 		p.Mode = ModeTypeNONE
 	}
 
-	totalGPUs := uint(p.GPUs[0])
-
 	if len(p.GPUs) > 0 {
-		p.NetWorkParam.NvSwitchNum = uint32(totalGPUs / p.NetWorkParam.GpusPerServer)
+		p.NetWorkParam.NvSwitchNum = uint32(uint(p.TotalGPUs) / p.NetWorkParam.GpusPerServer)
 		if p.NetWorkParam.SwitchNum == 0 {
 			p.NetWorkParam.SwitchNum = 120 + p.NetWorkParam.GpusPerServer
 		}
-		p.NetWorkParam.NodeNum = p.NetWorkParam.NvSwitchNum + uint32(p.NetWorkParam.SwitchNum) + uint32(totalGPUs)
+		p.NetWorkParam.NodeNum = p.NetWorkParam.NvSwitchNum + uint32(p.NetWorkParam.SwitchNum) + uint32(p.TotalGPUs)
 	}
 
 	if p.ResultDir == "None" && p.WorkloadsDir != "" {

@@ -1,0 +1,107 @@
+{
+    "topology_type": "clos",
+    "description": "clos1",
+    "network_parameters": {
+        "num_gpus": 64,
+        "gpu_type": "A100",
+        "all_gpus": [
+            [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            [
+                8,
+                9,
+                10,
+                11,
+                12,
+                13,
+                14,
+                15
+            ],
+            [
+                16,
+                17,
+                18,
+                19,
+                20,
+                21,
+                22,
+                23
+            ],
+            [
+                24,
+                25,
+                26,
+                27,
+                28,
+                29,
+                30,
+                31
+            ],
+            [
+                32,
+                33,
+                34,
+                35,
+                36,
+                37,
+                38,
+                39
+            ],
+            [
+                40,
+                41,
+                42,
+                43,
+                44,
+                45,
+                46,
+                47
+            ],
+            [
+                48,
+                49,
+                50,
+                51,
+                52,
+                53,
+                54,
+                55
+            ],
+            [
+                56,
+                57,
+                58,
+                59,
+                60,
+                61,
+                62,
+                63
+            ]
+        ],
+        "num_servers": 8,
+        "nv_switch_num": 8,
+        "num_switches": 24,
+        "num_tors": 8,
+        "num_spines": 8,
+        "num_aggregators": 8,
+        "gpu_per_server": 8,
+        "nics_per_server": 8,
+        "servers_per_tor": 8,
+        "tors_per_spine": 8,
+        "spines_per_aggregator": 8,
+        "bw_per_nic": 100,
+        "nic_type": "mlx5",
+        "link_num": 192,
+        "nv_link_bw": 600,
+        "nic_latency": 2,
+        "nv_link_latency": 0.2
+    }
+}

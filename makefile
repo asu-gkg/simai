@@ -1,2 +1,2 @@
 run:
-	go run main.go -gpus 8
+	go run main.go -total_gpus 8
