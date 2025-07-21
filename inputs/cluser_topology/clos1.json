@@ -94,7 +94,7 @@
         "num_aggregators": 8,
         "gpu_per_server": 8,
         "nics_per_server": 8,
-        "servers_per_tor": 8,
+        "servers_per_tor": 1,
         "tors_per_spine": 8,
         "spines_per_aggregator": 8,
         "bw_per_nic": 100,

@@ -3,9 +3,14 @@
 #     arrival_time: int # in nanoseconds
 #     parallel_config: ParallelConfig
    
+from dataclasses import dataclass
+import os
+import json
+import argparse
+from typing import Dict, List, Optional, Tuple
+import rich
 
-from typing import Dict, List, Optional
-
+@dataclass
 class ParallelConfig:
     """并行配置类"""
     dp: int = 1  # Data parallel degree
@@ -51,6 +56,7 @@ class ParallelConfig:
         else:
             return global_batch_size
 
+@dataclass
 class TrainingWorkload:
     batch_size: int
     sequence_length: int
@@ -72,6 +78,7 @@ class TrainingWorkload:
         self.execution_type = execution_type
         self.fusion = fusion
 
+@dataclass
 class Tenant:
     tenant_id: str
     gpu_ids: List[int]
@@ -162,7 +169,7 @@ class TenantJob:
     def get_gpu_ids(self) -> List[int]:
         return self.gpu_ids
     
-    def get_computation_graph(self) -> List[LayerComputationDelay]:
+    def get_computation_graph(self) -> Tuple[List[LayerComputationDelay], object]:
         if not self.workload:
             raise ValueError("Workload is not set")
         
@@ -173,7 +180,7 @@ class TenantJob:
                     sequence_length=self.workload.sequence_length, 
                     batch_size=self.workload.batch_size, 
                     is_train=True, 
-                    bench=False,
+                    bench=True,
                     single_layer=True, 
                     fusion=self.workload.fusion,
                     distributed=self.parallel_config.is_distributed(),
@@ -188,21 +195,45 @@ class TenantJob:
 
         return df, e2e_entry
 
-if __name__ == "__main__":
+def load_tenant_job(job_data: Dict) -> TenantJob:
+    model_config_path = job_data["model_config_path"]
+    device_config_path = job_data["device_config_path"]
     tenant_job = TenantJob(
-        job_id="1",
-        arrival_time=1000,
-        tenant_id="1",
-        gpu_ids=[0, 1, 2, 3, 4, 5, 6, 7],
-        gpu_type="v100_32gb",
+        job_id=job_data["job_id"],
+        arrival_time=job_data["arrival_time"],
+        tenant_id=job_data["tenant_id"],
+        gpu_ids=job_data["gpu_ids"],
+        gpu_type=job_data["gpu_type"],
+        parallel_config=ParallelConfig(
+            dp=job_data["parallel_config"]["dp"],
+            pp=job_data["parallel_config"]["pp"],
+            tp=job_data["parallel_config"]["tp"],
+            pp_num_microbatch=job_data["parallel_config"]["pp_num_microbatch"],
+        ),
         workload=TrainingWorkload(
-            batch_size=1,
-            sequence_length=1,
-            model_config_path="workloads/gpt2_large.json",
-            device_config_path="configs/v100_32gb.json",
+            batch_size=job_data["workload"]["batch_size"],
+            sequence_length=job_data["workload"]["sequence_length"],
+            model_config_path=model_config_path,
+            device_config_path=device_config_path,
             fusion=True,
         ),
-        parallel_config=ParallelConfig(dp=2, pp=2, tp=2, pp_num_microbatch=16),
     )
-    layer_delays = tenant_job.get_computation_graph()
+    return tenant_job
+        
+if __name__ == "__main__":
+    parse = argparse.ArgumentParser()
+    parse.add_argument("--jobs_dir", type=str, default="inputs/workloads/clos1_jobs")
+    args = parse.parse_args()
+    jobs_dir = args.jobs_dir
+    tenant_jobs = []
+    for job_file in os.listdir(jobs_dir):
+        with open(os.path.join(jobs_dir, job_file), "r") as f:
+            job_data = json.load(f)
+            tenant_job = load_tenant_job(job_data)
+            tenant_jobs.append(tenant_job)
+    
+    tenant_job = tenant_jobs[1]
+    rich.inspect(tenant_job)
+    layer_delays, e2e_entry = tenant_job.get_computation_graph()
     print(layer_delays)
+    print(e2e_entry)
