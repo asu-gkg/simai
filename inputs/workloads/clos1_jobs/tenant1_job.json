@@ -3,15 +3,19 @@
     "job_id": "job1",
     "gpu_ids": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31],
     "gpu_type": "A100",
+    "framework": "megatron",
     "parallel_config": {
         "dp": 8,
-        "pp": 2,
-        "tp": 2,
-        "pp_num_microbatch": 16
+        "pp": 1,
+        "tp": 1,
+        "pp_num_microbatch": 0
     },
     "workload": {
+        "global_batch_size": 128,
         "batch_size": 16,
-        "sequence_length": 128
+        "hidden_size": 1280,
+        "sequence_length": 128,
+        "epoch_num": 1
     },
     "arrival_time": 0,
     "model_config_path": "inputs/model_config/gpt2_large.json",

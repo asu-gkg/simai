@@ -4,14 +4,17 @@
     "gpu_ids": [32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63],
     "gpu_type": "A100",
     "parallel_config": {
-        "dp": 8,
-        "pp": 2,
-        "tp": 2,
-        "pp_num_microbatch": 16
+        "dp": 32,
+        "pp": 1,
+        "tp": 1,
+        "pp_num_microbatch": 0
     },
     "workload": {
+        "global_batch_size": 128,
         "batch_size": 16,
-        "sequence_length": 128
+        "hidden_size": 1280,
+        "sequence_length": 128,
+        "epoch_num": 1
     },
     "arrival_time": 0,
     "model_config_path": "inputs/model_config/gpt2_large.json",

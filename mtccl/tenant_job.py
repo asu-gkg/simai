@@ -9,6 +9,11 @@ import json
 import argparse
 from typing import Dict, List, Optional, Tuple
 import rich
+from neusight.Tracing.trace import get_model
+from neusight.Prediction.predictor import dump_df
+from workload_generator import WorkloadGenerator
+from parse import show_df
+import pandas as pd
 
 @dataclass
 class ParallelConfig:
@@ -175,12 +180,12 @@ class TenantJob:
         
         from neusight.Tracing.trace import trace_graph
         
-        df, e2e_entry = trace_graph(
+        df, _ = trace_graph(
                     model_config_path=self.workload.model_config_path, 
                     sequence_length=self.workload.sequence_length, 
                     batch_size=self.workload.batch_size, 
                     is_train=True, 
-                    bench=True,
+                    bench=False,
                     single_layer=True, 
                     fusion=self.workload.fusion,
                     distributed=self.parallel_config.is_distributed(),
@@ -189,11 +194,8 @@ class TenantJob:
                     pp_num_microbatch=self.parallel_config.pp_num_microbatch,
                     tp_degree=self.parallel_config.tp,
         )
-        # show df line by line
-        print(df)
-        print(e2e_entry)
-
-        return df, e2e_entry
+        
+        return df
 
 def load_tenant_job(job_data: Dict) -> TenantJob:
     model_config_path = job_data["model_config_path"]
@@ -215,10 +217,12 @@ def load_tenant_job(job_data: Dict) -> TenantJob:
             sequence_length=job_data["workload"]["sequence_length"],
             model_config_path=model_config_path,
             device_config_path=device_config_path,
-            fusion=True,
+            fusion=False,
         ),
     )
     return tenant_job
+
+
         
 if __name__ == "__main__":
     parse = argparse.ArgumentParser()
@@ -227,13 +231,31 @@ if __name__ == "__main__":
     jobs_dir = args.jobs_dir
     tenant_jobs = []
     for job_file in os.listdir(jobs_dir):
-        with open(os.path.join(jobs_dir, job_file), "r") as f:
-            job_data = json.load(f)
-            tenant_job = load_tenant_job(job_data)
-            tenant_jobs.append(tenant_job)
+        if job_file.endswith(".json"):
+            with open(os.path.join(jobs_dir, job_file), "r") as f:
+                job_data = json.load(f)
+                tenant_job = load_tenant_job(job_data)
+                tenant_jobs.append(tenant_job)
     
+    # todo: add for loop
     tenant_job = tenant_jobs[1]
     rich.inspect(tenant_job)
-    layer_delays, e2e_entry = tenant_job.get_computation_graph()
-    print(layer_delays)
-    print(e2e_entry)
+    csv_file = jobs_dir + f"/layer_delays_{tenant_job.job_id}.csv"
+    if not os.path.exists(csv_file):
+        layer_delays = tenant_job.get_computation_graph()
+        csv_file = dump_df(layer_delays, jobs_dir + f"/layer_delays_{tenant_job.job_id}.csv")
+    
+    # model, n_layer = get_model(model_config_path = tenant_job.workload.model_config_path,
+    #                 is_train=True, 
+    #                 device="cuda",
+    #                 fusion=tenant_job.workload.fusion,
+    #                 )
+    # rich.inspect(model)
+    # rich.inspect(n_layer)
+    
+    wg = WorkloadGenerator(csv_file, parallel_config=tenant_job.parallel_config, 
+                           device_config_path=tenant_job.workload.device_config_path,
+                           fusion=tenant_job.workload.fusion,
+    )
+    
+    show_df(wg.df)
