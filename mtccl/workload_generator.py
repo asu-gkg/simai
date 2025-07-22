@@ -23,6 +23,9 @@ class Work_Item:
     weight_grad_comm_type: str = dataclasses.field(default="NONE")
     weight_grad_comm_size: int = dataclasses.field(default=0)
     process_time: int = dataclasses.field(default=0)
+    
+    def has_overhead(self):
+        return self.forward_compute_time > 0 or self.backward_compute_time > 0 or self.weight_grad_compute_time > 0 or self.forward_comm_size > 0 or self.backward_comm_size > 0 or self.weight_grad_comm_size > 0
 
 class LayerInfo:
     def __init__(self, layer_df):
@@ -125,18 +128,16 @@ class WorkloadGenerator:
         # columns = ["Name", "OpName", "FwOps", "BwOps", "AccOps", "Prev", "Next", "InputShapes", "OutputShape"]
         # df = df[columns]
         
-        for index, row in self.df.iterrows():
+        for _, row in self.df.iterrows():
             layer_info = LayerInfo(row)
-            try:
-                item = layer_info.to_work_item()
-            except:
-                rich.inspect(layer_info)
-                item = layer_info.to_work_item()
-            self.workloads.append(item)
+            item = layer_info.to_work_item()
+            if item.has_overhead():
+                self.workloads.append(item)
     
     def dump_file(self, filename):
-        filename = filename + ".txt"
-        with open(filename, "w") as f:
+        # 输出 txt 文件
+        txt_filename = filename + ".txt"
+        with open(txt_filename, "w") as f:
             columns = list(Work_Item.__dataclass_fields__.keys())
             f.write("\t".join(columns) + "\n")
             for item in self.workloads:
@@ -144,7 +145,18 @@ class WorkloadGenerator:
                     "\t".join([str(getattr(item, k)) for k in columns])
                     + "\n"
                 )
+        
+        # 输出 json 文件
+        json_filename = filename + ".json"
+        with open(json_filename, "w") as f:
+            json_data = []
+            for item in self.workloads:
+                item_dict = dataclasses.asdict(item)
+                json_data.append(item_dict)
+            json.dump(json_data, f, indent=2, ensure_ascii=False)
+        
         rich.print(f"fwd_latency_e2e: {sum(w.forward_compute_time for w in self.workloads)}")
+        rich.print(f"已输出文件: {txt_filename}, {json_filename}")
 
     def generate_gpu_intensity(self):
         pass

@@ -5,7 +5,7 @@
     "gpu_type": "A100",
     "framework": "megatron",
     "parallel_config": {
-        "dp": 1,
+        "dp": 32,
         "pp": 1,
         "tp": 1,
         "pp_num_microbatch": 0
