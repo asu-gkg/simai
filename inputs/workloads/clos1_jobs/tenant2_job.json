@@ -13,7 +13,7 @@
         "global_batch_size": 128,
         "batch_size": 16,
         "hidden_size": 1280,
-        "sequence_length": 128,
+        "sequence_length": 1024,
         "epoch_num": 1
     },
     "arrival_time": 0,

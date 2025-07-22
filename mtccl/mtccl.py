@@ -12,7 +12,7 @@ import rich
 from neusight.Tracing.trace import get_model
 from neusight.Prediction.predictor import dump_df
 from workload_generator import WorkloadGenerator
-from parse import show_df
+from display import show_df
 import pandas as pd
 
 @dataclass
@@ -119,7 +119,7 @@ class LayerComputationDelay:
 
 class CommunicationVolume:
     """通信量信息"""
-    comm_type: str  # "AllGather", "AllReduce", "P2P" 
+    comm_type: str  
     size_gb: float
     group_size: int
     frequency: str  # "per_step", "per_layer" 
@@ -227,6 +227,7 @@ def load_tenant_job(job_data: Dict) -> TenantJob:
 if __name__ == "__main__":
     parse = argparse.ArgumentParser()
     parse.add_argument("--jobs_dir", type=str, default="inputs/workloads/clos1_jobs")
+    parse.add_argument("--workloads_dir", type=str, default="inputs/workloads/clos1_workloads")
     args = parse.parse_args()
     jobs_dir = args.jobs_dir
     tenant_jobs = []
@@ -238,24 +239,17 @@ if __name__ == "__main__":
                 tenant_jobs.append(tenant_job)
     
     # todo: add for loop
-    tenant_job = tenant_jobs[1]
-    rich.inspect(tenant_job)
-    csv_file = jobs_dir + f"/layer_delays_{tenant_job.job_id}.csv"
-    if not os.path.exists(csv_file):
+    for tenant_job in tenant_jobs:
+        rich.inspect(tenant_job)
+        csv_file = jobs_dir + f"/layer_delays_{tenant_job.job_id}.csv"
         layer_delays = tenant_job.get_computation_graph()
-        csv_file = dump_df(layer_delays, jobs_dir + f"/layer_delays_{tenant_job.job_id}.csv")
-    
-    # model, n_layer = get_model(model_config_path = tenant_job.workload.model_config_path,
-    #                 is_train=True, 
-    #                 device="cuda",
-    #                 fusion=tenant_job.workload.fusion,
-    #                 )
-    # rich.inspect(model)
-    # rich.inspect(n_layer)
-    
-    wg = WorkloadGenerator(csv_file, parallel_config=tenant_job.parallel_config, 
-                           device_config_path=tenant_job.workload.device_config_path,
-                           fusion=tenant_job.workload.fusion,
-    )
-    
-    show_df(wg.df)
+        dump_df(layer_delays, csv_file)
+        
+        wg = WorkloadGenerator(csv_file, parallel_config=tenant_job.parallel_config, 
+                            device_config_path=tenant_job.workload.device_config_path,
+                            fusion=tenant_job.workload.fusion,
+        )
+        
+        show_df(wg.df)
+        wg.generate_workload()
+        wg.dump_file(args.workloads_dir + f"/workload_{tenant_job.job_id}")
