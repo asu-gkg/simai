@@ -2,8 +2,9 @@ package workload
 
 import (
 	"simai/common"
+	"simai/dataset"
 	"simai/mock_nccl"
-	"simai/system"
+	"simai/system_interface"
 	"sync"
 )
 
@@ -37,7 +38,7 @@ func (l LoopState) String() string {
 type Layer struct {
 	id        string
 	layerNum  int
-	generator system.Sys
+	generator *system_interface.Sys
 	workload  *Workload
 	name      string
 
@@ -74,9 +75,9 @@ type Layer struct {
 	collectiveCounter int
 
 	// 数据集管理
-	fwdPassDatasets    map[int]*system.Dataset
-	inputGradDatasets  map[int]*system.Dataset
-	weightGradDatasets map[int]*system.Dataset
+	fwdPassDatasets    map[int]*dataset.Dataset
+	inputGradDatasets  map[int]*dataset.Dataset
+	weightGradDatasets map[int]*dataset.Dataset
 
 	// 等待时间记录
 	startedWaitingForFwdPass    []common.Tick

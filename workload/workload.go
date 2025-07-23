@@ -2,14 +2,14 @@ package workload
 
 import (
 	"simai/common"
-	"simai/system"
+	"simai/system_interface"
 	"sync"
 )
 
 type Workload struct {
 	layers    []*Layer
 	size      int
-	generator *system.Sys // 一个Sys Simulator可以有多个Workload
+	generator *system_interface.Sys // 一个Sys Simulator可以有多个Workload
 	runType   string
 
 	// 状态管理
@@ -55,4 +55,8 @@ type Workload struct {
 	registeredForFinishedStreams bool
 
 	mu sync.RWMutex
+}
+
+func (w *Workload) Fire() {
+	panic("implement me")
 }

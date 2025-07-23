@@ -20,7 +20,7 @@ type NetWorkParamV1 struct {
 	TpOverlapRatio float64
 	EpOverlapRatio float64
 	PpOverlapRatio float64
-	GpuType        common.GPUType
+	GPUType        common.GPUType
 	NvSwitchs      []int
 	AllGpus        [][]int
 }

@@ -1,11 +1,13 @@
-package system
+package my_packet
+
+import "simai/system"
 
 type MyPacket struct {
 	cyclesNeeded  int
 	fmID          int
 	streamNum     int
-	notifier      Callable
-	sender        Callable
+	notifier      system.Callable
+	sender        system.Callable
 	preferredVnet int
 	preferredDest int
 	preferredSrc  int
@@ -18,11 +20,11 @@ type MyPacket struct {
 	chunkID       int
 }
 
-func (mp *MyPacket) SetNotifier(c Callable) {
+func (mp *MyPacket) SetNotifier(c system.Callable) {
 	mp.notifier = c
 }
 
-func (mp *MyPacket) SetSender(c Callable) {
+func (mp *MyPacket) SetSender(c system.Callable) {
 	mp.sender = c
 }
 func NewMyPacket(preferredVnet int, preferredSrc int, preferredDest int) *MyPacket {
